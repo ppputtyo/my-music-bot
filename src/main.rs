@@ -1,7 +1,7 @@
 mod commands;
 mod util;
 
-use commands::{join::*, leave::*, nurupo::*, play::*};
+use commands::{join::*, leave::*, nurupo::*, pause::*, play::*, resume::*, skip::*};
 use serenity::client::Context;
 use serenity::{
     async_trait,
@@ -25,7 +25,7 @@ impl EventHandler for Handler {
 
 // 有効なコマンド
 #[group]
-#[commands(nurupo, join, leave, play)]
+#[commands(nurupo, join, leave, play, skip, pause, resume)]
 
 struct General;
 
