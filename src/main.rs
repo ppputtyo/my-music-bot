@@ -1,7 +1,7 @@
 mod commands;
 mod util;
 
-use commands::nurupo::*;
+use commands::{join::*, leave::*, nurupo::*, play::*};
 use serenity::client::Context;
 use serenity::{
     async_trait,
@@ -10,6 +10,7 @@ use serenity::{
     model::gateway::Ready,
     prelude::GatewayIntents,
 };
+use songbird::SerenityInit;
 use util::get_token;
 
 struct Handler;
@@ -24,7 +25,7 @@ impl EventHandler for Handler {
 
 // 有効なコマンド
 #[group]
-#[commands(nurupo)]
+#[commands(nurupo, join, leave, play)]
 
 struct General;
 
@@ -48,6 +49,7 @@ async fn main() {
     let mut client = Client::builder(&token, intents)
         .event_handler(Handler)
         .framework(framework)
+        .register_songbird()
         .await
         .expect("Err creating client");
 
