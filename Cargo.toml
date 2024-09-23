@@ -3,12 +3,10 @@ name = "my-music-bot"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 serde = "1.0.160"
 serde_json = "1.0.96"
-serenity = { versions = "0.11.5", features = [
+serenity = { version = "0.12.2", features = [
     "cache",
     "client",
     "standard_framework",
@@ -20,8 +18,10 @@ tokio = { version = "1.28.0", features = [
     "signal",
 ] }
 tracing = "0.1.37"
-tracing-subscriber = "0.3.17"
+tracing-subscriber = "0.3.18"
 tracing-futures = "0.2.5"
 
-# feturesにyt-dlpを追加することでデフォルトがyoutube-dlからyt-dlpになる
-songbird = { version = "0.3.2", features = ["builtin-queue", "yt-dlp"] }
+songbird = { version = "0.4.3", features = ["builtin-queue"] }
+poise = { version = "0.6.1", default-features = false, features = ["cache"] }
+reqwest = "0.11"
+symphonia = { version = "0.5.2", features = ["aac", "mp3", "isomp4", "alac"] }

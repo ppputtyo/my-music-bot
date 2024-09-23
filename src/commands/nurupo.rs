@@ -1,12 +1,10 @@
-use crate::util::check_msg;
+use crate::{Context, Error};
 
-use serenity::{
-    framework::standard::{macros::command, CommandResult},
-    model::prelude::Message,
-    prelude::{Context, Mentionable},
-};
-#[command]
-async fn nurupo(context: &Context, msg: &Message) -> CommandResult {
+use serenity::prelude::Mentionable;
+
+/// リプライ付きで「がっ」する
+#[poise::command(prefix_command, slash_command)]
+pub(crate) async fn nurupo(ctx: Context<'_>) -> Result<(), Error> {
     let res = format!(
         r"{}
 ```
@@ -17,9 +15,10 @@ async fn nurupo(context: &Context, msg: &Message) -> CommandResult {
 　　 ＿/し'　／／. Ｖ｀Д´）/
 　　（＿フ彡　　　　　 　　/
 ```",
-        msg.author.mention()
+        ctx.author().mention()
     );
-    check_msg(msg.channel_id.say(&context.http, res).await);
+
+    ctx.say(res).await?;
 
     Ok(())
 }

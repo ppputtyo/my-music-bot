@@ -1,35 +1,24 @@
-use crate::util::check_msg;
+use crate::{Context, Error};
 
-use serenity::{
-    framework::standard::{macros::command, Args, CommandResult},
-    model::prelude::Message,
-    prelude::Context,
-};
+/// 再生中の音楽を中断する
+#[poise::command(slash_command, prefix_command, guild_only)]
+pub(crate) async fn pause(ctx: Context<'_>) -> Result<(), Error> {
+    let guild_id = ctx.guild_id().unwrap();
 
-#[command]
-#[only_in(guilds)]
-async fn pause(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
-    let guild = msg.guild(&ctx.cache).unwrap();
-    let guild_id = guild.id;
-
-    let manager = songbird::get(ctx)
+    // クライアントマネージャの取得
+    let manager = songbird::get(ctx.serenity_context())
         .await
         .expect("Songbird Voice client placed in at initialisation.")
         .clone();
 
     if let Some(handler_lock) = manager.get(guild_id) {
         let handler = handler_lock.lock().await;
-
         let queue = handler.queue();
         queue.pause().expect("Pause failed");
 
-        check_msg(msg.channel_id.say(&ctx.http, "一時停止中…").await);
+        ctx.say("一時停止中…").await?;
     } else {
-        check_msg(
-            msg.channel_id
-                .say(&ctx.http, "ボイスチャンネルに入ってないよ")
-                .await,
-        );
+        ctx.say("ボイスチャンネルに入ってないよ").await?;
     }
 
     Ok(())

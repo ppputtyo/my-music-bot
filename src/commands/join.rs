@@ -1,50 +1,48 @@
-use crate::util::check_msg;
+use crate::{Context, Error};
 
-use serenity::{
-    framework::standard::{macros::command, CommandResult},
-    model::prelude::Message,
-    prelude::Context,
-};
+/// 発言者が参加中のボイスチャンネルに参加
+#[poise::command(slash_command, prefix_command, guild_only)]
+pub(crate) async fn join(ctx: Context<'_>) -> Result<(), Error> {
+    join_voice_channel(ctx).await?;
 
-#[command]
-#[only_in(guilds)]
-pub(crate) async fn join(ctx: &Context, msg: &Message) -> CommandResult {
+    Ok(())
+}
+
+pub(crate) async fn join_voice_channel(ctx: Context<'_>) -> Result<(), Error> {
     // サーバ情報の取得
-    let guild = msg.guild(&ctx.cache).unwrap();
-    let guild_id = guild.id;
+    // ctx.guild().unwrap()で返ってくるCacheRefがSendではないため、awaitを跨がないようにスコープを制限する
+    let (guild_id, channel_id) = {
+        let guild = ctx.guild().unwrap();
 
-    // メッセージ送信者が参加中のボイスチャンネルを取得
-    let channel_id = guild
-        .voice_states
-        .get(&msg.author.id)
-        .and_then(|voice_state| voice_state.channel_id);
+        let guild_id = guild.id;
+        let channel_id = guild
+            .voice_states
+            .get(&ctx.author().id)
+            .and_then(|voice_state| voice_state.channel_id);
+
+        (guild_id, channel_id)
+    };
 
     // 接続するボイスチャンネルがなければreturn
     let connect_to = match channel_id {
         Some(channel) => channel,
         None => {
-            check_msg(
-                msg.reply(ctx, "ボイスチャンネル入ってからコマンド送ってね")
-                    .await,
-            );
+            ctx.reply("ボイスチャンネル入ってからコマンド送ってね")
+                .await?;
             return Ok(());
         }
     };
 
     // クライアントマネージャの取得
-    let manager = songbird::get(ctx)
+    let manager = songbird::get(ctx.serenity_context())
         .await
         .expect("Songbird Voice client placed in at initialisation.")
         .clone();
 
     // ボイスチャンネルに接続
-    let _handler = manager.join(guild_id, connect_to).await;
+    manager.join(guild_id, connect_to).await?;
 
-    check_msg(
-        msg.channel_id
-            .say(&ctx.http, "ボイスチャンネルに接続しました！")
-            .await,
-    );
+    ctx.say("ボイスチャンネルに接続しました！").await?;
 
     Ok(())
 }
